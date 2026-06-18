@@ -1,29 +1,34 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, TextInput, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
-import { colors, radius, fontSize, spacing, gradient } from '../../theme';
+import { colors, radius, fontSize, spacing } from '../../theme';
 import { TopBar } from '../../components/TopBar';
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface Section {
   key: string;
   label: string;
   sub: string;
+  icon: IoniconName;
   nav: string | null;
 }
 
 const SECTIONS: Section[] = [
-  { key: 'meetups',     label: 'Meetups',       sub: 'Find games near you today',   nav: 'MeetupsTab' },
-  { key: 'cafes',       label: 'Cafes',          sub: "Browse Chennai's best spots", nav: 'CafesTab' },
-  { key: 'tournaments', label: 'Tournaments',    sub: 'Compete and win prizes',      nav: null },
-  { key: 'clubs',       label: 'Clubs',          sub: 'Make & join gaming clubs',    nav: 'ClubsTab' },
-  { key: 'catalogue',   label: 'Game Catalogue', sub: '120+ games to discover',      nav: 'GameCatalogue' },
+  { key: 'meetups',     label: 'Meetups',        sub: 'Find games near you today',    icon: 'people-outline',            nav: 'MeetupsTab' },
+  { key: 'cafes',       label: 'Cafes',           sub: "Browse Chennai's best spots",  icon: 'storefront-outline',        nav: 'CafesTab' },
+  { key: 'tournaments', label: 'Tournaments',     sub: 'Compete and win prizes',       icon: 'trophy-outline',            nav: null },
+  { key: 'clubs',       label: 'Clubs',           sub: 'Make & join gaming clubs',     icon: 'people-circle-outline',     nav: 'ClubsTab' },
+  { key: 'catalogue',   label: 'Game Catalogue',  sub: '120+ games to discover',       icon: 'library-outline',           nav: 'GameCatalogue' },
 ];
 
 export function HomeScreen() {
   const navigation = useNavigation<any>();
-  const { meetups, cafes, games, tournaments } = useStore();
+  const { width: screenWidth } = useWindowDimensions();
+  const { meetups, cafes, tournaments } = useStore();
   const [search, setSearch] = useState('');
 
   const openMeetups = meetups.filter(m => m.status === 'open' || m.status === 'full');
@@ -36,7 +41,10 @@ export function HomeScreen() {
     catalogue:   'Browse all',
   };
 
-  // Pair into rows of 2; last odd item spans full width
+  // Box width: half the screen minus 13px gutter on each side and 7px gap between boxes
+  const boxWidth = (screenWidth - 26 - 7) / 2;
+
+  // Pair into rows of 2
   const rows: (Section | null)[][] = [];
   for (let i = 0; i < SECTIONS.length; i += 2) {
     rows.push([SECTIONS[i], SECTIONS[i + 1] ?? null]);
@@ -70,8 +78,13 @@ export function HomeScreen() {
           />
         </View>
 
+        {/* Section header */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Explore</Text>
+          <View style={styles.sectionLine} />
+        </View>
+
         {/* Explore grid */}
-        <Text style={styles.exploreTitle}>Explore</Text>
         <View style={styles.grid}>
           {rows.map((row, ri) => (
             <View key={ri} style={styles.row}>
@@ -79,27 +92,28 @@ export function HomeScreen() {
                 s ? (
                   <TouchableOpacity
                     key={s.key}
-                    style={[styles.box, row[1] === null && styles.boxFull]}
+                    style={[styles.box, { width: boxWidth }]}
                     activeOpacity={0.8}
                     onPress={() => s.nav && navigation.navigate(s.nav)}
                   >
-                    {/* Gloss sheen — top highlight simulates glass */}
+                    {/* Radial glow — LinearGradient circle at bottom-right */}
                     <LinearGradient
-                      colors={['rgba(255,255,255,0.07)', 'transparent'] as [string, string]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      style={StyleSheet.absoluteFill}
+                      colors={['rgba(124,58,237,0.28)', 'transparent']}
+                      style={styles.glow}
                       pointerEvents="none"
                     />
-                    {/* Purple radial glow — bottom-right corner circle */}
-                    <View style={styles.glowCircle} pointerEvents="none" />
+
+                    <Ionicons name={s.icon} size={20} color="#C084FC" style={styles.boxIcon} />
                     <Text style={styles.boxLabel}>{s.label}</Text>
                     <Text style={styles.boxSub}>{s.sub}</Text>
                     <View style={styles.countPill}>
                       <Text style={styles.countText}>{counts[s.key]}</Text>
                     </View>
                   </TouchableOpacity>
-                ) : null
+                ) : (
+                  // Preserve row alignment for lone last item
+                  <View key="spacer" style={{ width: boxWidth }} />
+                )
               )}
             </View>
           ))}
@@ -175,59 +189,74 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
   },
 
-  exploreTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
+  sectionHeader: {
+    paddingHorizontal: 13,
+    marginBottom: 9,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#F3E8FF',
     fontFamily: 'Poppins_700Bold',
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+  },
+  sectionLine: {
+    height: 2,
+    width: 32,
+    backgroundColor: '#7C3AED',
+    borderRadius: 2,
+    marginTop: 3,
   },
 
-  grid: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  row:  { flexDirection: 'row', gap: spacing.md },
+  grid: { paddingHorizontal: 13, gap: 7 },
+  row:  { flexDirection: 'row', gap: 7 },
 
   box: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    padding: spacing.lg,
-    gap: spacing.xs,
+    backgroundColor: '#1A1030',
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(192,132,252,0.13)',
-    minHeight: 150,
+    paddingTop: 14,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
     overflow: 'hidden',
+    gap: 3,
   },
-  boxFull: { flex: 1 },
 
-  glowCircle: {
+  glow: {
     position: 'absolute',
-    bottom: -18, right: -18,
-    width: 72, height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(124,58,237,0.30)',
+    bottom: -18,
+    right: -18,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
   },
+
+  boxIcon: { marginBottom: 2 },
 
   boxLabel: {
-    fontSize: fontSize.lg,
-    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#F3E8FF',
     fontFamily: 'Poppins_700Bold',
   },
   boxSub: {
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
+    fontSize: 9,
+    color: '#6B4FA0',
     fontFamily: 'Poppins_400Regular',
+    lineHeight: 13,
   },
   countPill: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(124,58,237,0.15)',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 3,
-    marginTop: spacing.sm,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginTop: 3,
   },
   countText: {
-    fontSize: fontSize.xs,
-    color: colors.brandLight,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#C084FC',
     fontFamily: 'Poppins_700Bold',
   },
 });
