@@ -28,8 +28,8 @@ export const colors = {
   overlay:     'rgba(0,0,0,0.6)',
 
   // Logo two-tone
-  logoPurple: '#7C3AED',         // ON  → brand purple
-  logoMuted:  '#D4CAEC',         // BOARD → muted near-white
+  logoPurple: '#C084FC',         // ON  → brand light (matches reference)
+  logoMuted:  '#E9D5FF',         // BOARD → soft lavender near-white
 };
 
 export const gradient = {

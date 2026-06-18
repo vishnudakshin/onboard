@@ -83,14 +83,16 @@ export function HomeScreen() {
                     activeOpacity={0.8}
                     onPress={() => s.nav && navigation.navigate(s.nav)}
                   >
-                    {/* Warm glow — radiates from bottom-right corner */}
+                    {/* Gloss sheen — top highlight simulates glass */}
                     <LinearGradient
-                      colors={gradient.warmGlow}
-                      start={{ x: 1, y: 1 }}
-                      end={{ x: 0, y: 0 }}
+                      colors={['rgba(255,255,255,0.07)', 'transparent'] as [string, string]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
                       style={StyleSheet.absoluteFill}
                       pointerEvents="none"
                     />
+                    {/* Purple radial glow — bottom-right corner circle */}
+                    <View style={styles.glowCircle} pointerEvents="none" />
                     <Text style={styles.boxLabel}>{s.label}</Text>
                     <Text style={styles.boxSub}>{s.sub}</Text>
                     <View style={styles.countPill}>
@@ -191,12 +193,19 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(192,132,252,0.13)',
     minHeight: 150,
     overflow: 'hidden',
-    justifyContent: 'flex-end',
   },
   boxFull: { flex: 1 },
+
+  glowCircle: {
+    position: 'absolute',
+    bottom: -18, right: -18,
+    width: 72, height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(124,58,237,0.30)',
+  },
 
   boxLabel: {
     fontSize: fontSize.lg,
@@ -205,20 +214,20 @@ const styles = StyleSheet.create({
   },
   boxSub: {
     fontSize: fontSize.xs,
-    color: colors.textSecondary,
+    color: colors.textMuted,
     fontFamily: 'Poppins_400Regular',
   },
   countPill: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: 'rgba(124,58,237,0.15)',
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
-    paddingVertical: 4,
+    paddingVertical: 3,
     marginTop: spacing.sm,
   },
   countText: {
     fontSize: fontSize.xs,
-    color: colors.textSecondary,
-    fontFamily: 'Poppins_500Medium',
+    color: colors.brandLight,
+    fontFamily: 'Poppins_700Bold',
   },
 });
