@@ -235,14 +235,13 @@ const styles = StyleSheet.create({
 
   boxLabel: {
     fontSize: 14,
-    fontWeight: '700',
     color: '#F3E8FF',
     fontFamily: 'Poppins_700Bold',
   },
   boxSub: {
     fontSize: 11,
     color: '#6B4FA0',
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
     lineHeight: 15,
   },
   countPill: {
@@ -255,8 +254,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontSize: 11,
-    fontWeight: '700',
     color: '#C084FC',
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });
