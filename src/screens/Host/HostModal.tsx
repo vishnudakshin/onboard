@@ -12,7 +12,9 @@ import { VibeTag } from '../../components/VibeTag';
 import { Chip } from '../../components/Chip';
 import { Vibe } from '../../types';
 
-const STEPS = ['Cafe', 'Table & Time', 'Games', 'Players & Deposit', 'Vibe & Details', 'Publish'];
+// When a game is pre-selected (launched from GameDetail), skip the Games step.
+const STEPS_FULL = ['Cafe', 'Table & Time', 'Games', 'Players & Deposit', 'Vibe & Details', 'Publish'];
+const STEPS_PREGAME = ['Cafe', 'Table & Time', 'Players & Deposit', 'Vibe & Details', 'Publish'];
 
 const HOURS = ['11:00 am', '12:00 pm', '1:00 pm', '2:00 pm', '3:00 pm', '4:00 pm', '5:00 pm', '6:00 pm', '7:00 pm', '8:00 pm', '9:00 pm'];
 
@@ -21,20 +23,36 @@ export function HostModal() {
   const route = useRoute<any>();
   const { currentUser, cafes, games, hostMeetup } = useStore();
 
+  const preselectedGameId: string | undefined = route.params?.gameId;
+  const fromGame = !!preselectedGameId;
+  const STEPS = fromGame ? STEPS_PREGAME : STEPS_FULL;
+
   const [step, setStep] = useState(0);
   const [selectedCafeId, setSelectedCafeId] = useState<string>(route.params?.cafeId ?? '');
   const [selectedTableId, setSelectedTableId] = useState('');
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
-  const [selectedGameIds, setSelectedGameIds] = useState<string[]>(route.params?.gameId ? [route.params.gameId] : []);
+  const [selectedGameIds, setSelectedGameIds] = useState<string[]>(preselectedGameId ? [preselectedGameId] : []);
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [deposit, setDeposit] = useState('150');
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [beginnersWelcome, setBeginnersWelcome] = useState(false);
   const [note, setNote] = useState('');
+  const [byoInput, setByoInput] = useState('');
+  const [byoGameNames, setByoGameNames] = useState<string[]>([]);
 
   const cafe = cafes.find(c => c.id === selectedCafeId);
   const table = cafe?.tables.find(t => t.id === selectedTableId);
   const selectedGames = selectedGameIds.map(id => GAME_MAP[id]).filter(Boolean);
+
+  // Map visual step to data role, accounting for skipped Games step
+  const dataRole = (s: number) => {
+    if (fromGame) {
+      // 0→cafe, 1→table&time, 2→deposit, 3→vibe, 4→publish
+      return ['cafe', 'tableTime', 'deposit', 'vibe', 'publish'][s];
+    }
+    // 0→cafe, 1→table&time, 2→games, 3→deposit, 4→vibe, 5→publish
+    return ['cafe', 'tableTime', 'games', 'deposit', 'vibe', 'publish'][s];
+  };
 
   const toggleSlot = (hour: string) => {
     setSelectedSlots(prev =>
@@ -57,11 +75,12 @@ export function HostModal() {
   };
 
   const canNext = () => {
-    if (step === 0) return !!selectedCafeId;
-    if (step === 1) return !!selectedTableId && selectedSlots.length > 0;
-    if (step === 2) return selectedGameIds.length > 0;
-    if (step === 3) return Number(deposit) > 0;
-    if (step === 4) return vibes.length > 0;
+    const role = dataRole(step);
+    if (role === 'cafe') return !!selectedCafeId;
+    if (role === 'tableTime') return !!selectedTableId && selectedSlots.length > 0;
+    if (role === 'games') return selectedGameIds.length > 0 || byoGameNames.length > 0;
+    if (role === 'deposit') return Number(deposit) > 0;
+    if (role === 'vibe') return vibes.length > 0;
     return true;
   };
 
@@ -87,19 +106,20 @@ export function HostModal() {
       vibes,
       beginnersWelcome,
       note: note.trim() || undefined,
+      byoGameNames: byoGameNames.length ? byoGameNames : undefined,
     });
 
-    Alert.alert('Meetup Published! 🎲', 'Your meetup is live and a group chat has been created.', [
+    Alert.alert('Meetup Published!', 'Your meetup is live and a group chat has been created.', [
       { text: 'View Meetup', onPress: () => navigation.navigate('MeetupsTab') },
     ]);
     navigation.goBack();
   };
 
   const cafeGames = cafe ? cafe.gameLibraryIds.map(id => GAME_MAP[id]).filter(Boolean) : [];
+  const role = dataRole(step);
 
   return (
     <View style={styles.container}>
-      {/* Progress */}
       <View style={styles.progressBar}>
         {STEPS.map((s, i) => (
           <View key={s} style={[styles.progressStep, i <= step && styles.progressStepActive]} />
@@ -108,26 +128,26 @@ export function HostModal() {
       <Text style={styles.stepLabel}>Step {step + 1} of {STEPS.length}: {STEPS[step]}</Text>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Step 0: Cafe */}
-        {step === 0 && (
+        {/* Cafe */}
+        {role === 'cafe' && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Pick a Cafe</Text>
             {cafes.map(c => (
               <TouchableOpacity
                 key={c.id}
                 style={[styles.optionCard, selectedCafeId === c.id && styles.optionCardActive]}
-                onPress={() => { setSelectedCafeId(c.id); setSelectedTableId(''); setSelectedSlots([]); setSelectedGameIds([]); }}
+                onPress={() => { setSelectedCafeId(c.id); setSelectedTableId(''); setSelectedSlots([]); if (!fromGame) setSelectedGameIds([]); }}
               >
                 <Text style={[styles.optionName, selectedCafeId === c.id && styles.optionNameActive]}>{c.name}</Text>
                 <Text style={styles.optionSub}>{c.area} · {c.distanceKm} km · ₹{c.pricePerHour}/hr</Text>
-                {c.offer && <Text style={styles.offer}>🎁 {c.offer.text}</Text>}
+                {c.offer && <Text style={styles.offer}>{c.offer.text}</Text>}
               </TouchableOpacity>
             ))}
           </View>
         )}
 
-        {/* Step 1: Table & Time */}
-        {step === 1 && cafe && (
+        {/* Table & Time */}
+        {role === 'tableTime' && cafe && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Pick a Table</Text>
             {cafe.tables.map(t => (
@@ -166,11 +186,13 @@ export function HostModal() {
           </View>
         )}
 
-        {/* Step 2: Games */}
-        {step === 2 && (
+        {/* Games (only when not pre-selected) */}
+        {role === 'games' && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Pick Games</Text>
-            <Text style={styles.stepSub}>Select one or more games from this cafe's library</Text>
+            <Text style={styles.stepSub}>Select from the cafe's library, or bring your own</Text>
+
+            {/* Cafe library */}
             {cafeGames.map(g => (
               <TouchableOpacity
                 key={g.id}
@@ -184,11 +206,56 @@ export function HostModal() {
                 <Text style={styles.optionSub}>≈ {g.teachTimeMin} min teach · {g.playTimeMin} min play · {g.minPlayers}–{g.maxPlayers} players</Text>
               </TouchableOpacity>
             ))}
+
+            {/* Bring Your Own Game */}
+            <View style={styles.byoDivider}>
+              <View style={styles.byoDividerLine} />
+              <Text style={styles.byoDividerLabel}>or bring your own</Text>
+              <View style={styles.byoDividerLine} />
+            </View>
+            <View style={styles.byoRow}>
+              <TextInput
+                style={[styles.textInput, styles.byoInput]}
+                value={byoInput}
+                onChangeText={setByoInput}
+                placeholder="Game name"
+                placeholderTextColor={colors.textMuted}
+                returnKeyType="done"
+                onSubmitEditing={() => {
+                  const name = byoInput.trim();
+                  if (name && !byoGameNames.includes(name)) setByoGameNames(prev => [...prev, name]);
+                  setByoInput('');
+                }}
+              />
+              <TouchableOpacity
+                style={styles.byoAddBtn}
+                onPress={() => {
+                  const name = byoInput.trim();
+                  if (name && !byoGameNames.includes(name)) setByoGameNames(prev => [...prev, name]);
+                  setByoInput('');
+                }}
+              >
+                <Text style={styles.byoAddBtnText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+            {byoGameNames.length > 0 && (
+              <View style={styles.byoTags}>
+                {byoGameNames.map(n => (
+                  <TouchableOpacity
+                    key={n}
+                    style={styles.byoTag}
+                    onPress={() => setByoGameNames(prev => prev.filter(x => x !== n))}
+                  >
+                    <Text style={styles.byoTagText}>{n}  ✕</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         )}
 
-        {/* Step 3: Players & Deposit */}
-        {step === 3 && table && (
+        {/* Players & Deposit */}
+        {role === 'deposit' && table && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Players & Deposit</Text>
             <Text style={styles.fieldLabel}>Max players (table seats {table.seats})</Text>
@@ -220,8 +287,8 @@ export function HostModal() {
           </View>
         )}
 
-        {/* Step 4: Vibe & Details */}
-        {step === 4 && (
+        {/* Vibe & Details */}
+        {role === 'vibe' && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Vibe & Details</Text>
             <Text style={styles.fieldLabel}>Pick 1–2 vibes</Text>
@@ -256,15 +323,15 @@ export function HostModal() {
           </View>
         )}
 
-        {/* Step 5: Review & Publish */}
-        {step === 5 && (
+        {/* Review & Publish */}
+        {role === 'publish' && (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Review & Publish</Text>
             <View style={styles.reviewCard}>
               <ReviewRow label="Cafe" value={cafe?.name ?? '—'} />
               <ReviewRow label="Table" value={table?.label ?? '—'} />
               <ReviewRow label="Time" value={selectedSlots.length ? `${selectedSlots[0]} – ${HOURS[HOURS.indexOf(selectedSlots[selectedSlots.length - 1]) + 1] ?? ''}` : '—'} />
-              <ReviewRow label="Games" value={selectedGames.map(g => g.name).join(', ') || '—'} />
+              <ReviewRow label="Games" value={[...selectedGames.map(g => g.name), ...byoGameNames].join(', ') || '—'} />
               <ReviewRow label="Max players" value={String(maxPlayers)} />
               <ReviewRow label="Deposit" value={`₹${deposit} per person`} />
               <ReviewRow label="Vibes" value={vibes.join(', ') || '—'} />
@@ -280,7 +347,6 @@ export function HostModal() {
         )}
       </ScrollView>
 
-      {/* Nav */}
       <View style={styles.navRow}>
         {step > 0 && (
           <PrimaryButton label="← Back" variant="outline" onPress={() => setStep(step - 1)} style={{ flex: 1 }} />
@@ -293,7 +359,7 @@ export function HostModal() {
             style={{ flex: 1 }}
           />
         ) : (
-          <PrimaryButton label="Publish Meetup 🎲" onPress={handlePublish} style={{ flex: 1 }} />
+          <PrimaryButton label="Publish Meetup" onPress={handlePublish} style={{ flex: 1 }} />
         )}
       </View>
     </View>
@@ -380,4 +446,27 @@ const styles = StyleSheet.create({
   },
   publishInfoText: { fontSize: fontSize.sm, color: colors.brandLight, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
   navRow: { flexDirection: 'row', gap: spacing.md, padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border },
+
+  byoDivider: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginVertical: spacing.xs },
+  byoDividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  byoDividerLabel: { fontSize: fontSize.xs, color: colors.textMuted, fontFamily: 'Poppins_500Medium' },
+  byoRow: { flexDirection: 'row', gap: spacing.sm },
+  byoInput: { flex: 1 },
+  byoAddBtn: {
+    backgroundColor: colors.brand,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+  },
+  byoAddBtnText: { fontSize: fontSize.sm, color: '#fff', fontFamily: 'Poppins_600SemiBold' },
+  byoTags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  byoTag: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.brand + '60',
+  },
+  byoTagText: { fontSize: fontSize.xs, color: colors.accent, fontFamily: 'Poppins_500Medium' },
 });

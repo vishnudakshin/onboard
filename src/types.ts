@@ -82,6 +82,7 @@ export interface User {
   preferredVibes: Vibe[];
   topGameIds: string[];
   meeples: MeepleAward[];
+  bio?: string;
 }
 
 export interface Attendee {
@@ -108,6 +109,7 @@ export interface Meetup {
   vibes: Vibe[];
   beginnersWelcome: boolean;
   note?: string;
+  byoGameNames?: string[];
   status: MeetupStatus;
   roster: Attendee[];
 }

@@ -23,7 +23,7 @@ export function CafesScreen() {
 
   const SORTS: { key: Sort; label: string }[] = [
     { key: 'distance', label: 'Distance' },
-    { key: 'offers', label: '⚙ Offers' },
+    { key: 'offers', label: 'Offers' },
     { key: 'price', label: 'Price ▾' },
     { key: 'rating', label: 'Rating' },
   ];
@@ -49,13 +49,14 @@ export function CafesScreen() {
       <FlatList
         data={sorted}
         keyExtractor={c => c.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <CafeCard
             cafe={item}
             onPress={() => navigation.navigate('CafeDetail', { cafeId: item.id })}
-            compact
           />
         )}
       />
@@ -73,5 +74,6 @@ const styles = StyleSheet.create({
   sortLabel: { fontSize: fontSize.sm, color: colors.textMuted, fontFamily: 'Poppins_500Medium' },
   sortLabelActive: { color: colors.brand, fontFamily: 'Poppins_700Bold' },
   sortUnderline: { height: 2, backgroundColor: colors.brand, borderRadius: 1, marginTop: 2 },
-  list: { padding: spacing.lg, gap: spacing.md },
+  row: { gap: spacing.sm },
+  list: { padding: spacing.md, gap: spacing.sm },
 });

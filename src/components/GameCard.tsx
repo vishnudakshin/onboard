@@ -17,7 +17,7 @@ export function GameCard({ game, onPress, compact }: Props) {
         <Text style={styles.name}>{game.name}</Text>
         <View style={styles.row}>
           <DifficultyPill difficulty={game.difficulty} size="sm" />
-          <Text style={styles.weight}>⚖ {game.weight.toFixed(1)}/5</Text>
+          <Text style={styles.weight}>{game.weight.toFixed(1)}/5 weight</Text>
         </View>
         <TimeEstimate teachMin={game.teachTimeMin} playMin={game.playTimeMin} />
         <Text style={styles.players}>{game.minPlayers}–{game.maxPlayers} players</Text>
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   compact: { width: '100%', flexDirection: 'row' },
-  cover: { width: '100%', height: 110 },
+  cover: { width: '100%', height: 140, resizeMode: 'cover' },
   body: { padding: spacing.md, gap: spacing.xs },
   name: { fontSize: fontSize.md, color: colors.textPrimary, fontFamily: 'Poppins_700Bold' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

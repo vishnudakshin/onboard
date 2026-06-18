@@ -1,35 +1,35 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Cafe } from '../types';
 import { colors, radius, fontSize, spacing } from '../theme';
 import { RatingStars } from './RatingStars';
 
-interface Props { cafe: Cafe; onPress: () => void; compact?: boolean }
+interface Props { cafe: Cafe; onPress: () => void }
 
-const FREE_TABLES = 3;
-
-export function CafeCard({ cafe, onPress, compact }: Props) {
+export function CafeCard({ cafe, onPress }: Props) {
   return (
-    <TouchableOpacity style={[styles.card, compact && styles.compact]} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.imageWrap}>
-        <Image source={{ uri: cafe.photos[0] }} style={styles.image} />
-        <View style={styles.tag}><Text style={styles.tagText}>☕ Board Game Cafe</Text></View>
+        <Image source={{ uri: cafe.photos[0] }} style={styles.image} resizeMode="cover" />
+        <View style={styles.tag}><Text style={styles.tagText}>Board Game Cafe</Text></View>
       </View>
+
       <View style={styles.body}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name}>{cafe.name}</Text>
-          <RatingStars rating={cafe.rating} size="sm" />
+        <Text style={styles.name} numberOfLines={2}>{cafe.name}</Text>
+
+        <RatingStars rating={cafe.rating} size="sm" />
+
+        <View style={styles.distanceRow}>
+          <Ionicons name="location-outline" size={11} color={colors.textMuted} />
+          <Text style={styles.distanceText} numberOfLines={1}>{cafe.area} · {cafe.distanceKm} km</Text>
         </View>
-        <Text style={styles.area}>{cafe.area}</Text>
-        <View style={styles.pills}>
-          <View style={styles.pill}><Text style={styles.pillText}>₹{cafe.pricePerHour}/hr{cafe.perPerson ? '/person' : ''}</Text></View>
-          <View style={styles.pill}><Text style={styles.pillText}>{cafe.gameLibraryIds.length * 20}+ games</Text></View>
-        </View>
-        <View style={styles.available}>
-          <Text style={styles.availableText}>{FREE_TABLES} tables free now</Text>
-        </View>
+
+        <Text style={styles.detail}>{cafe.hours}</Text>
+        <Text style={styles.detail}>₹{cafe.pricePerHour}{cafe.perPerson ? '/person' : '/hr'}</Text>
+
         {cafe.offer && (
-          <Text style={styles.offer}>🎁 {cafe.offer.text}</Text>
+          <Text style={styles.offer} numberOfLines={2}>{cafe.offer.text}</Text>
         )}
       </View>
     </TouchableOpacity>
@@ -38,32 +38,36 @@ export function CafeCard({ cafe, onPress, compact }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 260,
+    flex: 1,
     backgroundColor: colors.surface,
     borderRadius: radius.card,
     borderWidth: 1, borderColor: colors.border,
     overflow: 'hidden',
   },
-  compact: { width: '100%' },
-  imageWrap: { position: 'relative', height: 130 },
+  imageWrap: { position: 'relative', height: 220 },
   image: { width: '100%', height: '100%' },
   tag: {
     position: 'absolute', bottom: spacing.sm, left: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: radius.pill,
-    paddingHorizontal: 8, paddingVertical: 3,
+    backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: radius.pill,
+    paddingHorizontal: 7, paddingVertical: 2,
   },
-  tagText: { fontSize: fontSize.xs, color: '#fff', fontFamily: 'Poppins_500Medium' },
-  body: { padding: spacing.md, gap: spacing.xs },
-  nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: fontSize.md, color: colors.textPrimary, fontFamily: 'Poppins_700Bold', flex: 1 },
-  area: { fontSize: fontSize.xs, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  pills: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
-  pill: {
-    backgroundColor: colors.surfaceAlt, borderRadius: radius.pill,
-    paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: colors.border,
+  tagText: { fontSize: 9, color: '#fff', fontFamily: 'Poppins_500Medium' },
+  body: { padding: spacing.sm, gap: 4 },
+  name: {
+    fontSize: 13, color: colors.textPrimary,
+    fontFamily: 'Poppins_700Bold', lineHeight: 18,
   },
-  pillText: { fontSize: fontSize.xs, color: colors.textSecondary, fontFamily: 'Poppins_500Medium' },
-  available: { marginTop: 2 },
-  availableText: { fontSize: fontSize.xs, color: colors.accentSuccess, fontFamily: 'Poppins_600SemiBold' },
-  offer: { fontSize: fontSize.xs, color: colors.brand, fontFamily: 'Poppins_500Medium' },
+  distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  distanceText: {
+    fontSize: 10, color: colors.textMuted,
+    fontFamily: 'Poppins_400Regular', flex: 1,
+  },
+  detail: {
+    fontSize: 10, color: colors.textSecondary,
+    fontFamily: 'Poppins_400Regular',
+  },
+  offer: {
+    fontSize: 10, color: colors.brand,
+    fontFamily: 'Poppins_500Medium',
+  },
 });

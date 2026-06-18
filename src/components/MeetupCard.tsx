@@ -7,45 +7,31 @@ import { Avatar } from './Avatar';
 import { DifficultyPill } from './DifficultyPill';
 import { VibeTag } from './VibeTag';
 import { SeatsIndicator } from './SeatsIndicator';
-import { DepositBadge } from './DepositBadge';
-import { TimeEstimate } from './TimeEstimate';
 
 interface Props {
   meetup: Meetup;
   onPress: () => void;
-  compact?: boolean;
 }
 
-export function MeetupCard({ meetup, onPress, compact }: Props) {
-  const game = GAME_MAP[meetup.gameIds[0]];
+export function MeetupCard({ meetup, onPress }: Props) {
+  const allGames = meetup.gameIds.map(id => GAME_MAP[id]).filter(Boolean);
+  const primaryGame = allGames[0];
+
   const slotLabel = meetup.slots.length
     ? `${meetup.slots[0].startTime} – ${meetup.slots[meetup.slots.length - 1].endTime}`
     : '';
-  const isToday = meetup.date === 'Today';
-  const gameCount = meetup.gameIds.length;
 
   return (
-    <TouchableOpacity style={[styles.card, compact && styles.cardCompact]} onPress={onPress} activeOpacity={0.85}>
-      {/* Host row */}
-      <View style={styles.hostRow}>
-        <Avatar uri={meetup.host.avatarUrl} size={32} isSuperHost={meetup.host.isSuperHost} />
-        <View style={styles.hostInfo}>
-          <Text style={styles.hostName}>{meetup.host.name}</Text>
-          {meetup.host.isSuperHost && <Text style={styles.superHost}>Super Host 🔥</Text>}
-        </View>
-        {gameCount > 1 && (
-          <View style={styles.multiGame}>
-            <Text style={styles.multiGameText}>+{gameCount - 1} more</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Game cover */}
-      {game && (
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+      {/* Game cover with name overlay only (no difficulty in header) */}
+      {primaryGame && (
         <View style={styles.coverWrap}>
-          <Image source={{ uri: game.coverUrl }} style={styles.cover} />
-          <View style={styles.gameLabelWrap}>
-            <Text style={styles.gameLabel}>{game.name}</Text>
+          <Image source={{ uri: primaryGame.coverUrl }} style={styles.cover} resizeMode="cover" />
+          <View style={styles.overlay}>
+            <Text style={styles.overlayTitle} numberOfLines={3}>
+              {allGames.map(g => g.name).join(' + ')}
+              {meetup.byoGameNames?.length ? ' + ' + meetup.byoGameNames.join(' + ') : ''}
+            </Text>
           </View>
           {meetup.status === 'full' && (
             <View style={styles.fullBadge}><Text style={styles.fullText}>FULL</Text></View>
@@ -53,34 +39,38 @@ export function MeetupCard({ meetup, onPress, compact }: Props) {
         </View>
       )}
 
-      {/* Meta */}
+      {/* Host row */}
+      <View style={styles.hostRow}>
+        <Avatar uri={meetup.host.avatarUrl} size={22} isSuperHost={false} />
+        <Text style={styles.hostName} numberOfLines={1}>{meetup.host.name}</Text>
+      </View>
+
+      {/* Description: difficulty pills (same pattern for single + multi game) */}
       <View style={styles.meta}>
-        <View style={styles.row}>
-          {game && <DifficultyPill difficulty={game.difficulty} size="sm" />}
-          {game && <TimeEstimate teachMin={game.teachTimeMin} playMin={game.playTimeMin} />}
-          <Text style={styles.playerRange}>{game?.minPlayers}–{game?.maxPlayers} players</Text>
-        </View>
-
-        <View style={styles.row}>
-          {meetup.vibes.map(v => <VibeTag key={v} vibe={v} />)}
-          {meetup.beginnersWelcome && (
-            <View style={styles.beginnerChip}>
-              <Text style={styles.beginnerText}>Beginners welcome</Text>
+        <View style={styles.pillRow}>
+          {allGames.map(g => (
+            <DifficultyPill key={g.id} difficulty={g.difficulty} size="sm" />
+          ))}
+          {meetup.byoGameNames?.map(n => (
+            <View key={n} style={styles.byoPill}>
+              <Text style={styles.byoPillText}>BYO</Text>
             </View>
-          )}
+          ))}
         </View>
 
-        <Text style={styles.cafe}>{meetup.cafe.name}, {meetup.cafe.area}</Text>
+        {meetup.vibes.length > 0 && (
+          <View style={styles.pillRow}>
+            {meetup.vibes.map(v => <VibeTag key={v} vibe={v} />)}
+          </View>
+        )}
 
-        <View style={styles.row}>
-          <Text style={styles.dateText}>{isToday ? '📅 Today' : `📅 ${meetup.date}`}</Text>
-          <Text style={styles.slotText}>🕐 {slotLabel}</Text>
-        </View>
+        <Text style={styles.cafe} numberOfLines={1}>{meetup.cafe.name}</Text>
+        <Text style={styles.metaLine} numberOfLines={1}>
+          {meetup.date === 'Today' ? 'Today' : meetup.date}
+          {slotLabel ? `  ·  ${slotLabel}` : ''}
+        </Text>
 
-        <View style={styles.bottomRow}>
-          <SeatsIndicator filled={meetup.seatsFilled} total={meetup.seatsTotal} />
-          <DepositBadge amount={meetup.depositAmount} />
-        </View>
+        <SeatsIndicator filled={meetup.seatsFilled} total={meetup.seatsTotal} />
       </View>
     </TouchableOpacity>
   );
@@ -88,45 +78,60 @@ export function MeetupCard({ meetup, onPress, compact }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 300,
+    flex: 1,
     backgroundColor: colors.surface,
     borderRadius: radius.card,
     borderWidth: 1, borderColor: colors.border,
     overflow: 'hidden',
   },
-  cardCompact: { width: '100%' },
-  hostRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md },
-  hostInfo: { flex: 1 },
-  hostName: { fontSize: fontSize.sm, color: colors.textPrimary, fontFamily: 'Poppins_600SemiBold' },
-  superHost: { fontSize: fontSize.xs, color: colors.accentStreak, fontFamily: 'Poppins_500Medium' },
-  multiGame: {
-    backgroundColor: colors.brand + '22', borderRadius: radius.pill,
-    paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.brand,
-  },
-  multiGameText: { fontSize: fontSize.xs, color: colors.brand, fontFamily: 'Poppins_600SemiBold' },
-  coverWrap: { width: '100%', height: 140, position: 'relative' },
+
+  coverWrap: { width: '100%', height: 280, position: 'relative' },
   cover: { width: '100%', height: '100%' },
-  gameLabelWrap: {
+
+  overlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.60)',
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.sm,
   },
-  gameLabel: { fontSize: fontSize.lg, color: '#fff', fontFamily: 'Poppins_700Bold' },
+  overlayTitle: {
+    fontSize: 12, color: '#fff',
+    fontFamily: 'Poppins_700Bold', lineHeight: 17,
+  },
+
   fullBadge: {
     position: 'absolute', top: spacing.sm, right: spacing.sm,
-    backgroundColor: colors.accentWarn + 'DD',
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill,
+    backgroundColor: colors.accentWarn + 'EE',
+    paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill,
   },
-  fullText: { fontSize: fontSize.xs, color: '#000', fontFamily: 'Poppins_700Bold' },
-  meta: { padding: spacing.md, gap: spacing.sm },
-  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
-  cafe: { fontSize: fontSize.sm, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  dateText: { fontSize: fontSize.xs, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  slotText: { fontSize: fontSize.xs, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  playerRange: { fontSize: fontSize.xs, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  bottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.xs },
-  beginnerChip: {
-    backgroundColor: colors.accentSuccess + '22', borderRadius: radius.pill,
-    paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: colors.accentSuccess + '66',
+  fullText: { fontSize: 9, color: '#000', fontFamily: 'Poppins_700Bold' },
+
+  hostRow: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: 5, paddingHorizontal: spacing.sm, paddingTop: spacing.sm,
   },
-  beginnerText: { fontSize: fontSize.xs, color: colors.accentSuccess, fontFamily: 'Poppins_500Medium' },
+  hostName: {
+    fontSize: 11, color: colors.textSecondary,
+    fontFamily: 'Poppins_500Medium', flex: 1,
+  },
+
+  meta: { padding: spacing.sm, gap: 6 },
+
+  pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+
+  byoPill: {
+    backgroundColor: colors.accent + '30',
+    borderRadius: radius.pill,
+    paddingHorizontal: 6, paddingVertical: 1,
+    borderWidth: 1, borderColor: colors.accent + '55',
+  },
+  byoPillText: { fontSize: 9, color: colors.accent, fontFamily: 'Poppins_600SemiBold' },
+
+  cafe: {
+    fontSize: 11, color: colors.textSecondary,
+    fontFamily: 'Poppins_500Medium',
+  },
+  metaLine: {
+    fontSize: 10, color: colors.textMuted,
+    fontFamily: 'Poppins_400Regular',
+  },
 });

@@ -1,22 +1,45 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useStore } from '../store/useStore';
 import { colors, fontSize, spacing } from '../theme';
 
 interface Props { showLocation?: boolean }
 
+function initials(name: string) {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+}
+
 export function TopBar({ showLocation = true }: Props) {
+  const navigation = useNavigation<any>();
+  const { currentUser } = useStore();
+  const goHome = () => navigation.navigate('Main', { screen: 'HomeTab' });
+
   return (
-    <View style={styles.bar}>
-      <View style={styles.logo}>
-        <Text style={styles.logoText}>ONBOARD</Text>
-      </View>
-      {showLocation && (
-        <TouchableOpacity style={styles.location} activeOpacity={0.8}>
-          <Text style={styles.locationLabel}>YOUR LOCATION</Text>
-          <View style={styles.locationRow}>
-            <Text style={styles.pin}>📍</Text>
-            <Text style={styles.city}>Chennai ▾</Text>
+    <View style={styles.wrap}>
+      <View style={styles.bar}>
+        {/* Logo — ON purple, BOARD muted near-white, solid border */}
+        <TouchableOpacity onPress={goHome} activeOpacity={0.8}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoOn}>ON</Text>
+            <Text style={styles.logoBoard}>BOARD</Text>
           </View>
+        </TouchableOpacity>
+
+        {/* Avatar → Profile */}
+        <TouchableOpacity
+          style={styles.avatar}
+          onPress={() => navigation.navigate('ProfileScreen')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.avatarText}>{initials(currentUser.name)}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {showLocation && (
+        <TouchableOpacity style={styles.locationRow} activeOpacity={0.75}>
+          <Text style={styles.locationLabel}>YOUR LOCATION </Text>
+          <Text style={styles.locationCity}>Chennai ▾</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -24,21 +47,37 @@ export function TopBar({ showLocation = true }: Props) {
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+  wrap: {
     backgroundColor: colors.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
   },
-  logo: {
-    borderWidth: 2, borderColor: colors.brand,
-    paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 4,
+  bar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  logoText: { fontSize: fontSize.sm, color: colors.brand, fontFamily: 'Poppins_700Bold', letterSpacing: 2 },
-  location: { alignItems: 'flex-end' },
-  locationLabel: { fontSize: fontSize.xs, color: colors.textMuted, fontFamily: 'Poppins_500Medium', letterSpacing: 1 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  pin: { fontSize: 12, color: colors.brand },
-  city: { fontSize: fontSize.sm, color: colors.brand, fontFamily: 'Poppins_600SemiBold' },
+  logoBox: {
+    flexDirection: 'row',
+    borderWidth: 2,
+    borderColor: colors.brand,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  logoOn:    { fontSize: fontSize.sm, fontFamily: 'Poppins_700Bold', letterSpacing: 2, color: colors.logoPurple },
+  logoBoard: { fontSize: fontSize.sm, fontFamily: 'Poppins_700Bold', letterSpacing: 2, color: colors.logoMuted },
+  avatar: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.brand,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontSize: fontSize.sm, color: '#fff', fontFamily: 'Poppins_700Bold' },
+  locationRow: { flexDirection: 'row', alignItems: 'center' },
+  locationLabel: { fontSize: fontSize.xs, color: colors.textMuted, fontFamily: 'Poppins_500Medium', letterSpacing: 0.5 },
+  locationCity:  { fontSize: fontSize.sm, color: colors.accent,    fontFamily: 'Poppins_600SemiBold' },
 });

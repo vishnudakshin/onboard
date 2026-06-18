@@ -60,17 +60,17 @@ export function MeetupDetailScreen() {
           <Avatar uri={meetup.host.avatarUrl} size={44} isSuperHost={meetup.host.isSuperHost} />
           <View>
             <Text style={styles.hostName}>Hosted by {meetup.host.name}</Text>
-            {meetup.host.isSuperHost && <Text style={styles.superHost}>Super Host 🔥</Text>}
+            {meetup.host.isSuperHost && <Text style={styles.superHost}>Super Host</Text>}
           </View>
         </View>
 
         {/* Details */}
         <View style={styles.card}>
-          <Row label="📍 Cafe" value={`${meetup.cafe.name}, ${meetup.cafe.area}`} />
-          <Row label="📅 Date" value={meetup.date === 'Today' ? 'Today' : meetup.date} />
-          <Row label="🕐 Time" value={slotLabel} />
-          <Row label="⏱ Est. time" value={`${meetup.estimatedTotalMin} min total`} />
-          <Row label="🎲 Games" value={games.map(g => g.name).join(', ')} />
+          <Row label="Cafe" value={`${meetup.cafe.name}, ${meetup.cafe.area}`} />
+          <Row label="Date" value={meetup.date === 'Today' ? 'Today' : meetup.date} />
+          <Row label="Time" value={slotLabel} />
+          <Row label="Est. time" value={`${meetup.estimatedTotalMin} min total`} />
+          <Row label="Games" value={[...games.map(g => g.name), ...(meetup.byoGameNames ?? [])].join(', ')} />
         </View>
 
         {/* Vibes */}
@@ -112,7 +112,7 @@ export function MeetupDetailScreen() {
         {/* Bill Split (completed) */}
         {isCompleted && bill && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💰 Bill Split</Text>
+            <Text style={styles.sectionTitle}>Bill Split</Text>
             {bill.lineItems.map(item => (
               <View key={item.label} style={styles.lineItem}>
                 <Text style={styles.lineLabel}>{item.label}</Text>
@@ -130,7 +130,7 @@ export function MeetupDetailScreen() {
         {/* Reliability rules info */}
         {!isCompleted && (
           <View style={styles.rulesBox}>
-            <Text style={styles.rulesTitle}>📋 How Pay & Join works</Text>
+            <Text style={styles.rulesTitle}>How Pay &amp; Join works</Text>
             <Text style={styles.rulesText}>• Cancel 2+ hrs before start → full refund</Text>
             <Text style={styles.rulesText}>• No-show → deposit goes to the cafe + reliability drops</Text>
             <Text style={styles.rulesText}>• Show up → deposit credited toward your bill</Text>

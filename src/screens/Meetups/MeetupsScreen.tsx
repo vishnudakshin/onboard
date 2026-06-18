@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, Text } from 'react-native';
+import { View, FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from '../../store/useStore';
-import { colors, spacing, fontSize } from '../../theme';
+import { colors, spacing, fontSize, radius } from '../../theme';
 import { TopBar } from '../../components/TopBar';
 import { MeetupCard } from '../../components/MeetupCard';
 import { Chip } from '../../components/Chip';
@@ -39,6 +39,7 @@ export function MeetupsScreen() {
   return (
     <View style={styles.container}>
       <TopBar />
+
       <View style={styles.filters}>
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>Difficulty</Text>
@@ -57,21 +58,22 @@ export function MeetupsScreen() {
           <Chip label="Has seats" active={seatsFilter} onPress={() => setSeatsFilter(!seatsFilter)} />
         </View>
       </View>
+
       <FlatList
         data={filtered}
         keyExtractor={m => m.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <MeetupCard
             meetup={item}
             onPress={() => navigation.navigate('MeetupDetail', { meetupId: item.id })}
-            compact
           />
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🎲</Text>
             <Text style={styles.emptyTitle}>No meetups found</Text>
             <Text style={styles.emptySub}>Try adjusting your filters</Text>
           </View>
@@ -86,9 +88,9 @@ const styles = StyleSheet.create({
   filters: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, alignItems: 'center' },
   filterLabel: { fontSize: fontSize.xs, color: colors.textMuted, fontFamily: 'Poppins_500Medium', width: 64 },
-  list: { padding: spacing.lg, gap: spacing.md },
+  row: { gap: spacing.sm },
+  list: { padding: spacing.md, gap: spacing.sm },
   empty: { alignItems: 'center', paddingTop: 80, gap: spacing.sm },
-  emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: fontSize.xl, color: colors.textPrimary, fontFamily: 'Poppins_700Bold' },
   emptySub: { fontSize: fontSize.sm, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
 });

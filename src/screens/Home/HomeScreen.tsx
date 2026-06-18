@@ -1,108 +1,106 @@
-import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
-import { colors, radius, fontSize, spacing } from '../../theme';
+import { colors, radius, fontSize, spacing, gradient } from '../../theme';
 import { TopBar } from '../../components/TopBar';
-import { SectionHeader } from '../../components/SectionHeader';
-import { MeetupCard } from '../../components/MeetupCard';
-import { CafeCard } from '../../components/CafeCard';
-import { GameCard } from '../../components/GameCard';
-import { TournamentCard } from '../../components/TournamentCard';
-import { difficultyColor } from '../../theme';
+
+interface Section {
+  key: string;
+  label: string;
+  sub: string;
+  nav: string | null;
+}
+
+const SECTIONS: Section[] = [
+  { key: 'meetups',     label: 'Meetups',       sub: 'Find games near you today',   nav: 'MeetupsTab' },
+  { key: 'cafes',       label: 'Cafes',          sub: "Browse Chennai's best spots", nav: 'CafesTab' },
+  { key: 'tournaments', label: 'Tournaments',    sub: 'Compete and win prizes',      nav: null },
+  { key: 'clubs',       label: 'Clubs',          sub: 'Make & join gaming clubs',    nav: 'ClubsTab' },
+  { key: 'catalogue',   label: 'Game Catalogue', sub: '120+ games to discover',      nav: 'GameCatalogue' },
+];
 
 export function HomeScreen() {
   const navigation = useNavigation<any>();
   const { meetups, cafes, games, tournaments } = useStore();
+  const [search, setSearch] = useState('');
+
   const openMeetups = meetups.filter(m => m.status === 'open' || m.status === 'full');
+
+  const counts: Record<string, string> = {
+    meetups:     `${openMeetups.length} open now`,
+    cafes:       `${cafes.length} nearby`,
+    tournaments: `${tournaments.length} upcoming`,
+    clubs:       'Browse all',
+    catalogue:   'Browse all',
+  };
+
+  // Pair into rows of 2; last odd item spans full width
+  const rows: (Section | null)[][] = [];
+  for (let i = 0; i < SECTIONS.length; i += 2) {
+    rows.push([SECTIONS[i], SECTIONS[i + 1] ?? null]);
+  }
 
   return (
     <View style={styles.container}>
       <TopBar />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Hero */}
-        <View style={styles.hero}>
-          <Text style={styles.heroSub}>Find a table to</Text>
+
+        {/* Hero card */}
+        <View style={styles.heroCard}>
+          <Text style={styles.heroEyebrow}>BOARD GAME MEETUPS</Text>
           <Text style={styles.heroMain}>
-            <Text style={styles.heroNormal}>play</Text>
-            <Text style={styles.heroBrand}>.</Text>
+            Find a table to <Text style={styles.heroBrand}>play.</Text>
           </Text>
           <TouchableOpacity style={styles.locationBtn} activeOpacity={0.8}>
-            <Text style={styles.locationDot}>◎</Text>
-            <Text style={styles.locationBtnText}>Use Current Location →</Text>
+            <View style={styles.locationDot} />
+            <Text style={styles.locationBtnText}>Use current location →</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Meetups Near You */}
-        <View style={styles.section}>
-          <SectionHeader title="🎲 Meetups Near You" onSeeAll={() => navigation.navigate('MeetupsTab')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {openMeetups.slice(0, 5).map(m => (
-              <MeetupCard
-                key={m.id}
-                meetup={m}
-                onPress={() => navigation.navigate('MeetupDetail', { meetupId: m.id })}
-              />
-            ))}
-          </ScrollView>
+        {/* Search */}
+        <View style={styles.searchWrap}>
+          <TextInput
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search cafes, gamers, clubs..."
+            placeholderTextColor={colors.textMuted}
+          />
         </View>
 
-        {/* Board Game Cafes */}
-        <View style={styles.section}>
-          <SectionHeader title="☕ Board Game Cafes" onSeeAll={() => navigation.navigate('CafesTab')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {cafes.map(c => (
-              <CafeCard
-                key={c.id}
-                cafe={c}
-                onPress={() => navigation.navigate('CafeDetail', { cafeId: c.id })}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Game Catalogue */}
-        <View style={styles.section}>
-          <SectionHeader title="📚 Game Catalogue" onSeeAll={() => navigation.navigate('GameCatalogue')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {games.map(g => (
-              <GameCard
-                key={g.id}
-                game={g}
-                onPress={() => navigation.navigate('GameDetail', { gameId: g.id })}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Events & Tournaments */}
-        <View style={styles.section}>
-          <SectionHeader title="🏆 Events & Tournaments" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-            {tournaments.map(t => (
-              <TournamentCard key={t.id} tournament={t} />
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Browse by Difficulty */}
-        <View style={styles.section}>
-          <SectionHeader title="Browse by Difficulty" />
-          <View style={styles.diffRow}>
-            {(['light', 'medium', 'heavy'] as const).map(d => (
-              <TouchableOpacity
-                key={d}
-                style={[styles.diffTile, { borderColor: difficultyColor[d], backgroundColor: difficultyColor[d] + '18' }]}
-                onPress={() => navigation.navigate('GameCatalogue', { difficulty: d })}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.diffDot, { backgroundColor: difficultyColor[d] }]} />
-                <Text style={[styles.diffLabel, { color: difficultyColor[d] }]}>
-                  {d.charAt(0).toUpperCase() + d.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {/* Explore grid */}
+        <Text style={styles.exploreTitle}>Explore</Text>
+        <View style={styles.grid}>
+          {rows.map((row, ri) => (
+            <View key={ri} style={styles.row}>
+              {row.map(s =>
+                s ? (
+                  <TouchableOpacity
+                    key={s.key}
+                    style={[styles.box, row[1] === null && styles.boxFull]}
+                    activeOpacity={0.8}
+                    onPress={() => s.nav && navigation.navigate(s.nav)}
+                  >
+                    {/* Warm glow — radiates from bottom-right corner */}
+                    <LinearGradient
+                      colors={gradient.warmGlow}
+                      start={{ x: 1, y: 1 }}
+                      end={{ x: 0, y: 0 }}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
+                    <Text style={styles.boxLabel}>{s.label}</Text>
+                    <Text style={styles.boxSub}>{s.sub}</Text>
+                    <View style={styles.countPill}>
+                      <Text style={styles.countText}>{counts[s.key]}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : null
+              )}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </View>
@@ -111,34 +109,116 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { paddingBottom: 40 },
-  hero: {
-    padding: spacing.xxl, paddingTop: spacing.xxxl,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-    marginBottom: spacing.xl,
-  },
-  heroSub: { fontSize: fontSize.xxl, color: colors.textSecondary, fontFamily: 'Poppins_400Regular' },
-  heroMain: { fontSize: fontSize.display, fontFamily: 'Poppins_700Bold', lineHeight: 48 },
-  heroNormal: { color: colors.textPrimary },
-  heroBrand: { color: colors.brand },
-  locationBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    marginTop: spacing.xl,
+  content:   { paddingBottom: 40 },
+
+  heroCard: {
+    margin: spacing.lg,
+    marginTop: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: radius.pill, borderWidth: 1, borderColor: colors.brand,
-    paddingHorizontal: spacing.xl, paddingVertical: spacing.md,
+    borderRadius: radius.card,
+    padding: spacing.xl,
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  heroEyebrow: {
+    fontSize: fontSize.xs,
+    color: colors.accent,
+    fontFamily: 'Poppins_600SemiBold',
+    letterSpacing: 1,
+  },
+  heroMain: {
+    fontSize: fontSize.xxxl,
+    color: colors.textPrimary,
+    fontFamily: 'Poppins_700Bold',
+    lineHeight: 40,
+  },
+  heroBrand: { color: colors.accent },
+  locationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     alignSelf: 'flex-start',
   },
-  locationDot: { color: colors.accentSuccess, fontSize: fontSize.lg },
-  locationBtnText: { color: colors.textPrimary, fontFamily: 'Poppins_600SemiBold', fontSize: fontSize.md },
-  section: { paddingHorizontal: spacing.lg, marginBottom: spacing.xxl },
-  carousel: { gap: spacing.md, paddingRight: spacing.lg },
-  diffRow: { flexDirection: 'row', gap: spacing.md },
-  diffTile: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingVertical: spacing.xl,
-    borderRadius: radius.card, borderWidth: 1.5, gap: spacing.sm,
+  locationDot: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: colors.accentSuccess,
   },
-  diffDot: { width: 12, height: 12, borderRadius: 6 },
-  diffLabel: { fontSize: fontSize.md, fontFamily: 'Poppins_700Bold' },
+  locationBtnText: {
+    fontSize: fontSize.sm,
+    color: colors.textPrimary,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+
+  searchWrap: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+  },
+  searchInput: {
+    paddingVertical: spacing.md,
+    fontSize: fontSize.md,
+    color: colors.textPrimary,
+    fontFamily: 'Poppins_400Regular',
+  },
+
+  exploreTitle: {
+    fontSize: fontSize.xl,
+    color: colors.textPrimary,
+    fontFamily: 'Poppins_700Bold',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+
+  grid: { paddingHorizontal: spacing.lg, gap: spacing.md },
+  row:  { flexDirection: 'row', gap: spacing.md },
+
+  box: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: 150,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  boxFull: { flex: 1 },
+
+  boxLabel: {
+    fontSize: fontSize.lg,
+    color: colors.textPrimary,
+    fontFamily: 'Poppins_700Bold',
+  },
+  boxSub: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontFamily: 'Poppins_400Regular',
+  },
+  countPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    marginTop: spacing.sm,
+  },
+  countText: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontFamily: 'Poppins_500Medium',
+  },
 });
