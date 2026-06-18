@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from '../store/useStore';
 import { colors, fontSize, spacing } from '../theme';
+import { OnboardLogo } from './OnboardLogo';
 
 interface Props { showLocation?: boolean }
 
@@ -18,12 +19,8 @@ export function TopBar({ showLocation = true }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.bar}>
-        {/* Logo — ON purple, BOARD muted near-white, solid border */}
         <TouchableOpacity onPress={goHome} activeOpacity={0.8}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoOn}>ON</Text>
-            <Text style={styles.logoBoard}>BOARD</Text>
-          </View>
+          <OnboardLogo size="md" />
         </TouchableOpacity>
 
         {/* Avatar → Profile */}
@@ -61,16 +58,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  logoBox: {
-    flexDirection: 'row',
-    borderWidth: 1.5,
-    borderColor: colors.brand,
-    borderRadius: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-  },
-  logoOn:    { fontSize: 13, fontFamily: 'Courier New', fontWeight: '800', letterSpacing: 2.4, color: colors.logoPurple },
-  logoBoard: { fontSize: 13, fontFamily: 'Courier New', fontWeight: '800', letterSpacing: 2.4, color: colors.logoMuted },
   avatar: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: colors.brand,
