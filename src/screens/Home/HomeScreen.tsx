@@ -92,7 +92,7 @@ export function HomeScreen() {
                 s ? (
                   <TouchableOpacity
                     key={s.key}
-                    style={[styles.box, { width: boxWidth }]}
+                    style={[styles.box, { width: row[1] === null ? screenWidth - 26 : boxWidth }]}
                     activeOpacity={0.8}
                     onPress={() => s.nav && navigation.navigate(s.nav)}
                   >
@@ -110,10 +110,7 @@ export function HomeScreen() {
                       <Text style={styles.countText}>{counts[s.key]}</Text>
                     </View>
                   </TouchableOpacity>
-                ) : (
-                  // Preserve row alignment for lone last item
-                  <View key="spacer" style={{ width: boxWidth }} />
-                )
+                ) : null
               )}
             </View>
           ))}
@@ -194,8 +191,7 @@ const styles = StyleSheet.create({
     marginBottom: 9,
   },
   sectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 14,
     color: '#F3E8FF',
     fontFamily: 'Poppins_700Bold',
   },
