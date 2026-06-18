@@ -60,13 +60,15 @@ export function MeetupsScreen() {
       </View>
 
       <FlatList
-        data={filtered}
+        data={filtered.length % 2 !== 0 ? [...filtered, { id: '__placeholder__' } as any] : filtered}
         keyExtractor={m => m.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => item.id === '__placeholder__'
+          ? <View style={{ flex: 1 }} />
+          : (
           <MeetupCard
             meetup={item}
             onPress={() => navigation.navigate('MeetupDetail', { meetupId: item.id })}

@@ -47,13 +47,15 @@ export function CafesScreen() {
         </View>
       </View>
       <FlatList
-        data={sorted}
+        data={sorted.length % 2 !== 0 ? [...sorted, { id: '__placeholder__' } as any] : sorted}
         keyExtractor={c => c.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => item.id === '__placeholder__'
+          ? <View style={{ flex: 1 }} />
+          : (
           <CafeCard
             cafe={item}
             onPress={() => navigation.navigate('CafeDetail', { cafeId: item.id })}

@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  coverWrap: { width: '100%', height: 280, position: 'relative' },
-  cover: { width: '100%', height: '100%' },
+  coverWrap: { width: '100%', height: 280, position: 'relative', backgroundColor: colors.surface },
+  cover: { width: '100%', height: '100%', resizeMode: 'contain' },
 
   overlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,

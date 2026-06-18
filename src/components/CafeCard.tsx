@@ -16,9 +16,10 @@ export function CafeCard({ cafe, onPress }: Props) {
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.name} numberOfLines={2}>{cafe.name}</Text>
-
-        <RatingStars rating={cafe.rating} size="sm" />
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={2}>{cafe.name}</Text>
+          <RatingStars rating={cafe.rating} size="sm" />
+        </View>
 
         <View style={styles.distanceRow}>
           <Ionicons name="location-outline" size={11} color={colors.textMuted} />
@@ -44,8 +45,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
     overflow: 'hidden',
   },
-  imageWrap: { position: 'relative', height: 220 },
-  image: { width: '100%', height: '100%' },
+  imageWrap: { position: 'relative', height: 220, backgroundColor: colors.surface },
+  image: { width: '100%', height: '100%', resizeMode: 'contain' },
   tag: {
     position: 'absolute', bottom: spacing.sm, left: spacing.sm,
     backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: radius.pill,
@@ -53,9 +54,10 @@ const styles = StyleSheet.create({
   },
   tagText: { fontSize: 9, color: '#fff', fontFamily: 'Poppins_500Medium' },
   body: { padding: spacing.sm, gap: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4 },
   name: {
     fontSize: 13, color: colors.textPrimary,
-    fontFamily: 'Poppins_700Bold', lineHeight: 18,
+    fontFamily: 'Poppins_700Bold', lineHeight: 18, flex: 1,
   },
   distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   distanceText: {
