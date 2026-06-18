@@ -103,7 +103,7 @@ export function HomeScreen() {
                       pointerEvents="none"
                     />
 
-                    <Ionicons name={s.icon} size={20} color="#C084FC" style={styles.boxIcon} />
+                    <Ionicons name={s.icon} size={24} color="#C084FC" style={styles.boxIcon} />
                     <Text style={styles.boxLabel}>{s.label}</Text>
                     <Text style={styles.boxSub}>{s.sub}</Text>
                     <View style={styles.countPill}>
@@ -234,16 +234,16 @@ const styles = StyleSheet.create({
   boxIcon: { marginBottom: 2 },
 
   boxLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     color: '#F3E8FF',
     fontFamily: 'Poppins_700Bold',
   },
   boxSub: {
-    fontSize: 9,
+    fontSize: 11,
     color: '#6B4FA0',
     fontFamily: 'Poppins_400Regular',
-    lineHeight: 13,
+    lineHeight: 15,
   },
   countPill: {
     alignSelf: 'flex-start',
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   countText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     color: '#C084FC',
     fontFamily: 'Poppins_700Bold',
