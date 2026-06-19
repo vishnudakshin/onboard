@@ -5,7 +5,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, spacing } from '../theme';
+import { useStore } from '../store/useStore';
 
+import { LoginScreen } from '../screens/Auth/LoginScreen';
 import { HomeScreen } from '../screens/Home/HomeScreen';
 import { GameCatalogueScreen } from '../screens/Home/GameCatalogueScreen';
 import { GameDetailScreen } from '../screens/Home/GameDetailScreen';
@@ -160,10 +162,16 @@ function MainTabs() {
 }
 
 export function AppNavigator() {
+  const isAuthenticated = useStore(s => s.isAuthenticated);
+
   return (
     <NavigationContainer>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="Main" component={MainTabs} />
+        {!isAuthenticated ? (
+          <RootStack.Screen name="Login" component={LoginScreen} />
+        ) : (
+          <RootStack.Screen name="Main" component={MainTabs} />
+        )}
         <RootStack.Screen
           name="HostModal"
           component={HostModal}

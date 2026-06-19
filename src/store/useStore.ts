@@ -11,7 +11,10 @@ interface AppState {
   chats: Chat[];
   bills: Bill[];
   tournaments: Tournament[];
+  isAuthenticated: boolean;
 
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
   joinMeetup: (meetupId: string) => void;
   cancelMeetup: (meetupId: string, userId: string) => void;
   hostMeetup: (meetup: Omit<Meetup, 'id' | 'roster' | 'seatsFilled' | 'status'>) => void;
@@ -27,6 +30,17 @@ export const useStore = create<AppState>((set, get) => ({
   chats: CHATS,
   bills: BILLS,
   tournaments: TOURNAMENTS,
+  isAuthenticated: false,
+
+  login: async (email, password) => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    if (!email.trim() || !password.trim()) return false;
+    set({ isAuthenticated: true });
+    return true;
+  },
+
+  logout: () => set({ isAuthenticated: false }),
 
   joinMeetup: (meetupId) => {
     set(state => ({
